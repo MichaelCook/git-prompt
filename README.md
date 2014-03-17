@@ -15,5 +15,5 @@ PS1='$(git-prompt)\$ '
   * M - Modifications to stage.
   * S - Staged changes to commit.
   * P - Commits to push.
-  * <branch> - If not on master.
+  * &lt;branch&gt; - If not on master.
   * (no branch) - Not on a branch.
