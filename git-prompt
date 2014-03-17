@@ -1,0 +1,91 @@
+#!/usr/bin/python
+#
+# Generate a very terse summary of our git workspace state.
+# Intended for use in a shell prompt.  For example (using bash):
+#
+# PS1='$(git-prompt)\$ '
+#
+# U - Untracked files to add.
+# M - Modifications to stage.
+# S - Staged changes to commit.
+# P - Commits to push.
+# <branch> - If not on master.
+# (no branch) - Not on a branch.
+#
+
+# This software is distributed under the "Simplified BSD license":
+#
+# Copyright Michael Cook <michael@waxrat.com>. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice,
+#       this list of conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY MICHAEL COOK ''AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+# EVENT SHALL MICHAEL COOK OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are
+# those of the authors and should not be interpreted as representing official
+# policies, either expressed or implied, of Michael Cook.
+
+import sys, os, subprocess
+
+devnull = open(os.devnull, "w")
+
+branch, err = subprocess.Popen("git symbolic-ref HEAD".split(),
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE).communicate()
+if "Not a git repository" in err:
+    sys.exit(0)
+branch = branch.strip().split("/")[-1]
+
+untracked = False
+staged = False
+modified = False
+for line in subprocess.Popen("git status --porcelain".split(),
+                             stdout=subprocess.PIPE,
+                             stderr=devnull).stdout:
+    x = line[0:1]
+    y = line[1:2]
+    if x + y == "??":
+        untracked = True
+        continue
+    if x != " ":
+        staged = True
+    if y != " ":
+        modified = True
+
+prompt = ""
+if untracked:
+    prompt += "U"
+if modified:
+    prompt += "M"
+if staged:
+    prompt += "S"
+
+if "" != subprocess.Popen("git log --pretty=oneline @{u}..".split(),
+                          stdout=subprocess.PIPE,
+                          stderr=devnull).communicate()[0]:
+    prompt += "P"
+
+if branch == "":
+    prompt += "(no branch)";
+elif branch != "master":
+    prompt += "<" + branch + ">"
+
+# There is intentionally no terminating newline.
+sys.stdout.write(prompt)
