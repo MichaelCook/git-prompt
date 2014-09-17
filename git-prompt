@@ -53,34 +53,45 @@ if "Not a git repository" in err:
     sys.exit(0)
 branch = branch.strip().split("/")[-1]
 
-untracked = False
-staged = False
-modified = False
-for line in subprocess.Popen("git status --porcelain".split(),
-                             stdout=subprocess.PIPE,
-                             stderr=devnull).stdout:
+untracked = 0
+staged = 0
+modified = 0
+for line in iter(subprocess.Popen("git status --porcelain".split(),
+                                  stdout=subprocess.PIPE,
+                                  stderr=devnull).stdout.readline, ""):
     x = line[0:1]
     y = line[1:2]
     if x + y == "??":
-        untracked = True
+        untracked += 1
         continue
     if x != " ":
-        staged = True
+        staged += 1
     if y != " ":
-        modified = True
+        modified += 1
 
 prompt = ""
-if untracked:
+if untracked != 0:
     prompt += "U"
-if modified:
+    if untracked > 1:
+        prompt += str(untracked)
+if modified != 0:
     prompt += "M"
-if staged:
+    if modified > 1:
+        prompt += str(modified)
+if staged != 0:
     prompt += "S"
+    if staged > 1:
+        prompt += str(staged)
 
-if "" != subprocess.Popen("git log --pretty=oneline @{u}..".split(),
-                          stdout=subprocess.PIPE,
-                          stderr=devnull).communicate()[0]:
+push = 0
+for line in iter(subprocess.Popen("git log --pretty=oneline @{u}..".split(),
+                                  stdout=subprocess.PIPE,
+                                  stderr=devnull).stdout.readline, ""):
+    push += 1
+if push != 0:
     prompt += "P"
+    if push > 1:
+        prompt += str(push)
 
 if branch == "":
     prompt += "(no branch)";
