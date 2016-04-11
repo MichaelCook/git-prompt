@@ -51,6 +51,10 @@ branch, err = subprocess.Popen("git symbolic-ref HEAD".split(),
                                stderr=subprocess.PIPE).communicate()
 if "Not a git repository" in err:
     sys.exit(0)
+# In a directory that has been removed:
+# fatal: failed to stat '.': No such file or directory
+if "No such file or directory" in err:
+    sys.exit(0)
 branch = branch.strip().split("/")[-1]
 
 untracked = 0
