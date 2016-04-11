@@ -73,32 +73,26 @@ for line in iter(subprocess.Popen("git status --porcelain".split(),
     if y != " ":
         modified += 1
 
-prompt = ""
-if untracked != 0:
-    prompt += "U"
-    if untracked > 1:
-        prompt += str(untracked)
-if modified != 0:
-    prompt += "M"
-    if modified > 1:
-        prompt += str(modified)
-if staged != 0:
-    prompt += "S"
-    if staged > 1:
-        prompt += str(staged)
-
 push = 0
 for line in iter(subprocess.Popen("git log --pretty=oneline @{u}..".split(),
                                   stdout=subprocess.PIPE,
                                   stderr=devnull).stdout.readline, ""):
     push += 1
-if push != 0:
-    prompt += "P"
-    if push > 1:
-        prompt += str(push)
+
+def mark(label, num):
+    if num == 0:
+        return ""
+    if num == 1:
+        return label
+    return label + str(num)
+
+prompt = mark("U", untracked) + \
+         mark("M", modified) + \
+         mark("S", staged) + \
+         mark("P", push)
 
 if branch == "":
-    prompt += "(no branch)";
+    prompt += "(no branch)"
 elif branch != "master":
     prompt += "<" + branch + ">"
 
