@@ -8,8 +8,9 @@
 # U - Untracked files to add.
 # M - Modifications to stage.
 # S - Staged changes to commit.
+# T - Stashed commits.
 # P - Commits to push.
-# <branch> - If not on master.
+# <foo> - On branch foo, not on master.
 # (no branch) - Not on a branch.
 #
 
@@ -81,6 +82,12 @@ for line in iter(subprocess.Popen("git log --pretty=oneline @{u}..".split(),
                                   stderr=devnull).stdout.readline, ""):
     push += 1
 
+stashed = 0
+for line in iter(subprocess.Popen("git stash list --pretty=%H".split(),
+                                  stdout=subprocess.PIPE,
+                                  stderr=devnull).stdout.readline, ""):
+    stashed += 1
+
 def mark(label, num):
     if num == 0:
         return ""
@@ -91,6 +98,7 @@ def mark(label, num):
 prompt = mark("U", untracked) + \
          mark("M", modified) + \
          mark("S", staged) + \
+         mark("T", stashed) + \
          mark("P", push)
 
 if branch == "":
