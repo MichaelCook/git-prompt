@@ -52,7 +52,8 @@ devnull = open(os.devnull, "w")
 branch, err = subprocess.Popen("git symbolic-ref HEAD".split(),
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE).communicate()
-if "Not a git repository" in err:
+# "Not a git repository" or "not ..."
+if "ot a git repository" in err:
     sys.exit(0)
 # In a directory that has been removed:
 # fatal: failed to stat '.': No such file or directory
