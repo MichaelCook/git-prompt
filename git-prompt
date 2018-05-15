@@ -59,7 +59,10 @@ if "ot a git repository" in err:
 # fatal: failed to stat '.': No such file or directory
 if "No such file or directory" in err:
     sys.exit(0)
-branch = branch.strip().split("/")[-1]
+branch = branch.rstrip("\n")
+prefix = "refs/heads/"
+if branch.startswith(prefix):
+    branch = branch[len(prefix):]
 
 untracked = 0
 staged = 0
